@@ -29,10 +29,26 @@ public class Item {
     @PostPersist
     public void onPostPersist(){
         ItemRegistered itemRegistered = new ItemRegistered();
+        itemRegistered.setItemNo(this.getItemNo());
         itemRegistered.setItemName(this.getItemName());
         itemRegistered.setItemPrice(this.getItemPrice());
         itemRegistered.setItemStatus("Rentable");
         itemRegistered.setRentalStatus("NotRenting");
+
+        // view를 위해 send
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = null;
+        try {
+            json = objectMapper.writeValueAsString(itemRegistered);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON format exception", e);
+        }
+        KafkaProcessor processor = ItemApplication.applicationContext.getBean(KafkaProcessor.class);
+        MessageChannel outputChannel = processor.outboundTopic();
+        outputChannel.send(org.springframework.integration.support.MessageBuilder
+                .withPayload(json)
+                .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
+                .build());
 
         System.out.println("@@@@@@@ ItemRegistered to Json @@@@@@@");
         System.out.println(itemRegistered.toJson());
@@ -42,6 +58,7 @@ public class Item {
     public void onPostUpdate() {
         if ("Renting".equals(this.getRentalStatus())) {
             RentedItem rentedItem = new RentedItem();
+            rentedItem.setItemNo(this.getItemNo());
             rentedItem.setReservationNo(this.getReservationNo());
             rentedItem.setRentalStatus("Renting");
 
@@ -63,6 +80,7 @@ public class Item {
         }
         if ("Returned".equals(this.getRentalStatus())) {
             ReturnedItem returnedItem = new ReturnedItem();
+            returnedItem.setItemNo(this.getItemNo());
             returnedItem.setReservationNo(this.getReservationNo());
             returnedItem.setRentalStatus("Returned");
 
@@ -87,8 +105,23 @@ public class Item {
     @PreRemove
     public void onPreRemove() {
         ItemDeleted itemDeleted = new ItemDeleted();
-        BeanUtils.copyProperties(this, itemDeleted);
-        itemDeleted.publishAfterCommit();
+        itemDeleted.setItemNo(this.getItemNo());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = null;
+        try {
+            json = objectMapper.writeValueAsString(itemDeleted);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON format exception", e);
+        }
+        KafkaProcessor processor = ItemApplication.applicationContext.getBean(KafkaProcessor.class);
+        MessageChannel outputChannel = processor.outboundTopic();
+        outputChannel.send(org.springframework.integration.support.MessageBuilder
+                .withPayload(json)
+                .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
+                .build());
+        System.out.println("@@@@@@@ itemDeleted to Json @@@@@@@");
+        System.out.println(itemDeleted.toJson());
     }
 
 

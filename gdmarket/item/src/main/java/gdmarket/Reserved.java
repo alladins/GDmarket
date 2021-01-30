@@ -5,10 +5,10 @@ public class Reserved extends AbstractEvent {
     private Integer reservationNo;
     private String customerName;
     private Integer customerId;
-    private Integer ItemNo;
-    private String ItemName;
-    private String ItemStatus;
-    private Integer ItemPrice;
+    private Integer itemNo;
+    private String itemName;
+    private String itemStatus;
+    private Integer itemPrice;
 
     public Integer getReservationNo() {
         return reservationNo;
@@ -28,30 +28,30 @@ public class Reserved extends AbstractEvent {
     public void setCustomerId(Integer customerId) { this.customerId = customerId; }
 
     public Integer getItemNo() {
-        return ItemNo;
+        return itemNo;
     }
-    public void setItemNo(Integer ItemNo) {
-        this.ItemNo = ItemNo;
+    public void setItemNo(Integer itemNo) {
+        this.itemNo = itemNo;
     }
 
     public String getItemName() {
-        return ItemName;
+        return itemName;
     }
-    public void setItemName(String ItemName) {
-        this.ItemName = ItemName;
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
     }
 
     public String getItemStatus() {
-        return ItemStatus;
+        return itemStatus;
     }
-    public void setItemStatus(String ItemStatus) {
-        this.ItemStatus = ItemStatus;
+    public void setItemStatus(String itemStatus) {
+        this.itemStatus = itemStatus;
     }
 
     public Integer getItemPrice() {
-        return ItemPrice;
+        return itemPrice;
     }
-    public void setItemPrice(Integer ItemPrice) {
-        this.ItemPrice = ItemPrice;
+    public void setItemPrice(Integer itemPrice) {
+        this.itemPrice = itemPrice;
     }
 }

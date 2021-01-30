@@ -41,11 +41,14 @@ public class ItemInfoViewHandler {
             if (reserved.isMe()) {
                 // view 객체 조회
                 List<ItemInfo> itemInfoList = itemInfoRepository.findByItemNo(reserved.getItemNo());
+                System.out.println("$$$ itemInfo View를 위한 reserved.toJson() : " + reserved.toJson());
                 for(ItemInfo itemInfo : itemInfoList) {
+                    itemInfo.setItemNo(reserved.getItemNo());
                     itemInfo.setReservationNo(reserved.getReservationNo());
                     itemInfo.setItemStatus(reserved.getItemStatus());
                     itemInfo.setCustomerId(reserved.getCustomerId());
                     itemInfo.setCustomerName(reserved.getCustomerName());
+                    itemInfo.setRentalStatus("NotRenting");
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
                     // view 레파지 토리에 save
                     itemInfoRepository.save(itemInfo);
@@ -79,7 +82,7 @@ public class ItemInfoViewHandler {
                 // view 객체 조회
                 List<ItemInfo> itemInfoList = itemInfoRepository.findByItemNo(rentedItem.getItemNo());
                 for(ItemInfo itemInfo : itemInfoList) {
-                    itemInfo.setRentalStatus(rentedItem.getRentalStatus());
+                    itemInfo.setRentalStatus("Renting");
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
                     // view 레파지 토리에 save
                     itemInfoRepository.save(itemInfo);
@@ -96,7 +99,7 @@ public class ItemInfoViewHandler {
                 // view 객체 조회
                 List<ItemInfo> itemInfoList = itemInfoRepository.findByItemNo(returnedItem.getItemNo());
                 for(ItemInfo itemInfo : itemInfoList) {
-                    itemInfo.setRentalStatus(returnedItem.getRentalStatus());
+                    itemInfo.setRentalStatus("Returned");
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
                     // view 레파지 토리에 save
                     itemInfoRepository.save(itemInfo);
