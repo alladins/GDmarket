@@ -134,10 +134,10 @@
 * http 명령 (터미널4)
 
 	# items 등록
-	http POST localhost:8081/items/ itemName=Juice itemPrice=100 itemStatus=Rentable rentalStatus=NotRenting
+	http POST localhost:8081/items/ itemName=Camera itemPrice=100 itemStatus=Rentable rentalStatus=NotRenting
 	
 	# 예약
-	http POST localhost:8082/reservations customerName=mvn customerId=1 itemNo=1 itemName=Juice itemPrice=100 paymentStatus=NotPaid rentalStatus=NotRenting
+	http POST localhost:8082/reservations customerName=YoungEunSong customerId=1 itemNo=1 itemName=Camera itemPrice=100 paymentStatus=NotPaid rentalStatus=NotRenting
 	
 	# tems 1번의 itemStatus가 NotRentable로 바뀌었는지 확인 (pub/sub)
 	http localhost:8081/items/1 
