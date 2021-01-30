@@ -41,7 +41,7 @@
 			- String itemStatus : item 대여 가능 여부 (Rentable/NotRentable) 
 			- Integer itemPrice : item 가격
 			- Integer reservationNo : reservation 고유 번호
-			- String rentalStatus : Customer의 대여 여부 (Renting/NotRenting/Returned)
+			- String rentalStatus : Customer의 대여 여부 (Renting/NotRenting)
 			- Intger customerId : Customer 고유 ID
 			- String customerName : Customer 이름
 		(1) CREATE WHEN itemRegistered
@@ -58,7 +58,7 @@
 			- Integer reservationNo : reservation 고유 번호
 			- String customerName : Customer 이름
 			- Integer customerId : Customer 고유 ID
-			- String rentalStatus : Customer의 대여 여부 (Renting/NotRenting/Returned)
+			- String rentalStatus : Customer의 대여 여부 (Renting/NotRenting)
 			- Integer itemNo : item 고유 번호
 			- integer itemPrice : item 가격
 			- String paymentStatus : 결제 여부 (Paid/NotPaid)
@@ -111,61 +111,3 @@
 	3) Scenario
 		(1) 결제 승인 : 2.3).(3).desc 참고
 		(2) 결제 취소 : 2.4).(4).desc 참고
-		
-		
-##########################################################################	
-		
-(참고) set up 및 시나리오
-
-* kafka 설정
-	# kafka 디렉토리로 이동
-	cd C:\kafka_2.13\bin\windows
-
-	# zookeeper 실행 (터미널1)
-	.\zookeeper-server-start.bat ..\..\config\zookeeper.properties
-
-	# kafka 실행 (터미널2)
-	.\kafka-server-start.bat ..\..\config\server.properties
-	
-	# consumer 실행 (터미널3)
-	.\kafka-console-consumer.bat --bootstrap-server 127.0.0.1:9092 --topic gdmarket
-
-
-* http 명령 (터미널4)
-
-	# items 등록
-	http POST localhost:8081/items/ itemName=Juice itemPrice=100 itemStatus=Rentable rentalStatus=NotRenting
-	
-	# 예약
-	http POST localhost:8082/reservations customerName=mvn customerId=1 itemNo=1 itemName=Juice itemPrice=100 paymentStatus=NotPaid rentalStatus=NotRenting
-	
-	# tems 1번의 itemStatus가 NotRentable로 바뀌었는지 확인 (pub/sub)
-	http localhost:8081/items/1 
-			
-			# 예약 취소
-			http DELETE localhost:8082/reservations/1
-			# items 1번의 itemStatus가 Rentable로 바뀌었는지 확인 (pub/sub)
-			ttp localhost:8081/items/1 
-	
-	# 결제요청 
-	http PATCH localhost:8082/reservations/1 paymentStatus=Paid
-	
-	# payments 생성 되어있는지 확인 (req/res)
-	http localhost:8083/payments
-	
-			# 결제취소요청 
-			http PATCH localhost:8082/reservations/1 reservationNo=1 paymentStatus=NotPaid	
-			# payments 삭제 되어있는지 확인 (req/res)
-			http localhost:8083/payments
-	
-	# 대여 
-	http PATCH localhost:8081/items/1 itemNo=1 reservationNo=1 itemStatus=NotRentable rentalStatus=Renting 
-	
-	# reservations의 rentalStatus가 Renting으로 변경되었는지 확인 (pub/sub)
-	http localhost:8082/reservations/1
-	
-	# 반납 
-	http PATCH localhost:8081/items/1 itemNo=1 reservationNo=1 itemStatus=Rentable rentalStatus=Returned
-	
-	# reservations의 rentalStatus가 Returned으로 변경되었는지 확인 (pub/sub)
-	http localhost:8082/reservations/1

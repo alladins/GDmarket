@@ -34,14 +34,9 @@ public class PolicyHandler{
     }
     @StreamListener(KafkaProcessor.INPUT)
     public void wheneverReturnedItem_(@Payload ReturnedItem returnedItem){
+
         if(returnedItem.isMe()){
             System.out.println("##### listener  : " + returnedItem.toJson());
-            System.out.println("##### returnedItem ReservationNo : " + returnedItem.getReservationNo());
-            if(returnedItem.getReservationNo() != null && "Returned".equals(returnedItem.getRentalStatus())){
-                Reservation reservation = (Reservation) reservationManagementRepository.findByReservationNo(returnedItem.getReservationNo()).get(0);
-                reservation.setRentalStatus("Returned");
-                reservationManagementRepository.save(reservation);
-            }
         }
     }
 

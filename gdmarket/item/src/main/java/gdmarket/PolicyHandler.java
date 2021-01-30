@@ -34,6 +34,7 @@ public class PolicyHandler{
 
     @StreamListener(KafkaProcessor.INPUT)
     public void wheneverReservationCancelled_(@Payload ReservationCancelled reservationCancelled){
+
         if(reservationCancelled.isMe()){
             System.out.println("##### listener  : " + reservationCancelled.toJson());
             if(reservationCancelled.getItemNo() != null && "Rentable".equals(reservationCancelled.getItemStatus())){
