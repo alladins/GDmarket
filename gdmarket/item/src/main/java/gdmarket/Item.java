@@ -6,11 +6,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gdmarket.config.kafka.KafkaProcessor;
 import org.springframework.beans.BeanUtils;
-import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.MimeTypeUtils;
 
 @Entity
@@ -29,31 +29,18 @@ public class Item {
     @PostPersist
     public void onPostPersist(){
         ItemRegistered itemRegistered = new ItemRegistered();
-        BeanUtils.copyProperties(this, itemRegistered);
-        itemRegistered.publishAfterCommit();
+        itemRegistered.setItemName(this.getItemName());
+        itemRegistered.setItemPrice(this.getItemPrice());
+        itemRegistered.setItemStatus("Rentable");
+        itemRegistered.setRentalStatus("NotRenting");
 
-        // kafka 메시지 설정
-        ObjectMapper objectMapper = new ObjectMapper();
-        String json = null;
-
-        try {
-            json = objectMapper.writeValueAsString(itemRegistered);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON format exception", e);
-        }
-
-        KafkaProcessor processor = ItemApplication.applicationContext.getBean(KafkaProcessor.class);
-        MessageChannel outputChannel = processor.outboundTopic();
-
-        outputChannel.send(MessageBuilder
-                .withPayload(json)
-                .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
-                .build());
+        System.out.println("@@@@@@@ ItemRegistered to Json @@@@@@@");
+        System.out.println(itemRegistered.toJson());
     }
 
     @PostUpdate
     public void onPostUpdate() {
-        if ("Renting".equals(this.getRentalStatus()) || this.getRentalStatus() == null) {
+        if ("Renting".equals(this.getRentalStatus())) {
             RentedItem rentedItem = new RentedItem();
             rentedItem.setReservationNo(this.getReservationNo());
             rentedItem.setRentalStatus("Renting");
@@ -74,10 +61,10 @@ public class Item {
             System.out.println("@@@@@@@ rentedItem to Json @@@@@@@");
             System.out.println(rentedItem.toJson());
         }
-        if ("NotRenting".equals(this.getRentalStatus())) {
+        if ("Returned".equals(this.getRentalStatus())) {
             ReturnedItem returnedItem = new ReturnedItem();
             returnedItem.setReservationNo(this.getReservationNo());
-            returnedItem.setRentalStatus("NotRenting");
+            returnedItem.setRentalStatus("Returned");
 
             ObjectMapper objectMapper = new ObjectMapper();
             String json = null;
@@ -92,7 +79,7 @@ public class Item {
                     .withPayload(json)
                     .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
                     .build());
-            System.out.println("@@@@@@@ rentedItem to Json @@@@@@@");
+            System.out.println("@@@@@@@ returnedItem to Json @@@@@@@");
             System.out.println(returnedItem.toJson());
         }
     }
@@ -136,7 +123,6 @@ public class Item {
     private String getRentalStatus () {
         return rentalStatus;
     }
-
     public void setRentalStatus (String rentalStatus){
         this.rentalStatus = rentalStatus;
     }
@@ -144,7 +130,6 @@ public class Item {
     private Integer getReservationNo() {
         return reservationNo;
     }
-
     public void setReservationNo (Integer reservationNo){
         this.reservationNo = reservationNo;
     }
