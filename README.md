@@ -1,7 +1,7 @@
 # GDmarket
 GDmarket : 근대마켓 - 근거리 대여 마켓
 
-![image](./img/gdMarket.jpg)
+![image](./img/logo.jpg)
 
 # Table of contents
 
