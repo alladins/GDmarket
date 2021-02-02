@@ -53,11 +53,3 @@ kubectl set image deploy item item=skcc10.azurecr.io/item:0.2
 
 ![image](https://user-images.githubusercontent.com/77088104/106607775-08696200-65a7-11eb-9f90-3b4aade9ee85.png)
 
-
-
-![image](https://user-images.githubusercontent.com/73699193/98106161-65884580-1edc-11eb-9540-17a3c9bdebf3.png)
-
-- Availability: 100.00 % 확인
-
-![image](https://user-images.githubusercontent.com/73699193/98106524-c152ce80-1edc-11eb-8e0f-3731ca2f709d.png)
-
