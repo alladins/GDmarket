@@ -459,7 +459,7 @@ kubectl expose deploy item --type="ClusterIP" --port=8080 -n gdmarket
 4. liveness 설정 (self-healing)
 5. resource 설정 (autoscaling)
 ```
-![캡처9 config map 생성](https://user-images.githubusercontent.com/26623768/106570102-ca554980-6578-11eb-81d7-50d63bba864d.PNG)
+![deployment수정](https://user-images.githubusercontent.com/26623768/106570535-5a938e80-6579-11eb-97db-638ec9440502.png)
 - deployment.yml로 서비스 배포
 ```
 cd app
