@@ -167,7 +167,7 @@ GDmarket : 근대마켓 - 근거리 대여 마켓
     - Payment의 경우 Polyglot 검증을 위해 Hsql로 셜계
 
 
-# 구현:
+# 구현
 
 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
 
@@ -180,7 +180,6 @@ mvn spring-boot:run
 
 cd pay
 mvn spring-boot:run  
-
 ```
 
 ## DDD 의 적용
@@ -233,8 +232,8 @@ http POST http://gateway:8080/items itemName=Camera itemPrice=100 itemStatus=Ren
 호출 프로토콜은 앞서 작성한 REST Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 구현 하였다.
 
 - 결제서비스를 호출하기 위하여 FeignClient 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현
-```
-# reservation > external > PaymentService.java
+```java
+// reservation > external > PaymentService.java
 
 @FeignClient(name="payment", url="${api.payment.url}")
 public interface PaymentService {
@@ -250,8 +249,8 @@ public interface PaymentService {
 
 
 - 결제 요청을 동기 호출로 받으면 결제 승인 처리
-```
-# payment > Payment.java (Entity)
+```java
+// payment > Payment.java (Entity)
 
     @PostPersist
     public void onPostPersist(){
