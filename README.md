@@ -398,53 +398,51 @@ http localhost:8081/itemInfoes
 
 - 네임스페이스 만들기
 ```
-kubectl create ns phone82
+kubectl create ns gdmarket
 kubectl get ns
 ```
-![image](https://user-images.githubusercontent.com/73699193/97960790-6d20ef00-1df5-11eb-998d-d5591975b5d4.png)
+![image](./img/운영/kubectl create ns.PNG)
+![image](./img/운영/kubectl get ns.PNG)
 
 - 폴더 만들기, 해당폴더로 이동
 ```
-mkdir phone82
-cd phone 82
+mkdir gdmarket
+cd gdmarket
 ```
-![image](https://user-images.githubusercontent.com/73699193/97961127-0ea84080-1df6-11eb-81b3-1d5e460d4c0f.png)
+![image](./img/운영/mkdir gdmarket.PNG)
 
 - 소스 가져오기
 ```
-git clone https://github.com/phone82/app.git
+git clone https://github.com/0is2/GDmarket.git
 ```
-![image](https://user-images.githubusercontent.com/73699193/98089346-eb4cc680-1ec5-11eb-9c23-f6987dee9308.png)
+![image](./img/운영/캡처4 git clone.PNG)
 
 - 빌드하기
 ```
 cd app
 mvn package -Dmaven.test.skip=true
 ```
-![image](https://user-images.githubusercontent.com/73699193/98089442-19320b00-1ec6-11eb-88b5-544cd123d62a.png)
+![image](./img/운영/캡처5 mvn package.PNG)
 
 - 도커라이징: Azure 레지스트리에 도커 이미지 푸시하기
 ```
-az acr build --registry admin02 --image admin02.azurecr.io/app:latest .
+az acr build --registry gdmarketacr --image gdmarketacr.azurecr.io/item:0.1 .
 ```
-![image](https://user-images.githubusercontent.com/73699193/98089685-6dd58600-1ec6-11eb-8fb9-80705c854c7b.png)
+![image](./img/운영/캡처6 az acr build.PNG)
 
 - 컨테이너라이징: 디플로이 생성 확인
 ```
-kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
-kubectl get all -n phone82
+kubectl create deploy item --image=gdmarketacr.azurecr.io/item:0.1 -n gdmarket
 ```
-![image](https://user-images.githubusercontent.com/73699193/98090560-83977b00-1ec7-11eb-9770-9cfe1021f0b4.png)
+![image](./img/운영/캡처7 create deploy.PNG)
 
 - 컨테이너라이징: 서비스 생성 확인
 ```
-kubectl expose deploy app --type="ClusterIP" --port=8080 -n phone82
-kubectl get all -n phone82
+kubectl expose deploy item --type="ClusterIP" --port=8080 -n gdmarket
 ```
-![image](https://user-images.githubusercontent.com/73699193/98090693-b80b3700-1ec7-11eb-959e-fc0ce94663aa.png)
+![image](./img/운영/캡처8 expose.PNG)
 
-- pay, store, customer, gateway에도 동일한 작업 반복
-
+- reservation, payment, gateway에도 동일한 작업 반복
 
 
 
@@ -452,14 +450,13 @@ kubectl get all -n phone82
 
 - deployment.yml 편집
 ```
-namespace, image 설정
-env 설정 (config Map) 
-readiness 설정 (무정지 배포)
-liveness 설정 (self-healing)
-resource 설정 (autoscaling)
+1. namespace, image 설정
+2. env 설정 (config Map) 
+3. readiness 설정 (무정지 배포)
+4. liveness 설정 (self-healing)
+5. resource 설정 (autoscaling)
 ```
-![image](https://user-images.githubusercontent.com/73699193/98092861-8182eb80-1eca-11eb-87c5-afa22140ebad.png)
-
+![image](./img/deployment수정.png)
 - deployment.yml로 서비스 배포
 ```
 cd app
