@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: item
-          image: username/item:latest
+          image: gdmarketacr/item:latest
           ports:
             - containerPort: 8080
           readinessProbe:

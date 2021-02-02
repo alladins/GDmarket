@@ -65,3 +65,6 @@ spring:
         event-out:
           destination: gdmarket
           contentType: application/json
+api:
+  payment:
+    url: ${configurl}

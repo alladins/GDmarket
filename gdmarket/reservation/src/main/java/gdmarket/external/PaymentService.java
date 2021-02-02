@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 
-@FeignClient(name="payment", url="http://payment:8080")
+@FeignClient(name="payment", url="${api.payment.url}")
 public interface PaymentService {
 
     @RequestMapping(method= RequestMethod.POST, path="/payments")
