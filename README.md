@@ -16,8 +16,9 @@ GDmarket : 근대마켓 - 근거리 대여 마켓
 * 첫째 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscale 이나 CB 설정을 제거함
 * 둘째 ITEM 서비스에 readiness 옵션이 없는 배포 옵션을 가지거나, 아예 배포 설정 옵션이 없는 상황에서.
 * 셋째 ITEM 서비스의 버전이 0.2 버전에서 0.3 버전의 이미지를 만들어 ACR에 PUSH함.
-  - seige 로 배포작업 직전에 워크로드를 모니터링 함.
+  - 배포작업 직전에 seige 로 워크로드를 모니터링 함.
 ```  
+kubectl exec -it siege -- /bin/bash
 siege -c100 -t120S -r10 -v --content-type "application/json" 'http://item:8080/items POST {"itemName": "Juice", "itemPrice":100}'
 ```
   - ITEM 서비스의 버전을 0.2 버전에서 0.3 버전 업데이트 시킴.
@@ -34,8 +35,9 @@ kubectl set image deploy item item=skcc10.azurecr.io/item:0.3
 ```
 kubectl apply -f kubernetes/deployment.yml
 ```
-  - seige 로 배포작업 직전에 워크로드를 모니터링 함.
+  - 배포작업 직전에 seige 로 워크로드를 모니터링 함.
 ```  
+kubectl exec -it siege -- /bin/bash
 siege -c100 -t120S -r10 -v --content-type "application/json" 'http://item:8080/items POST {"itemName": "Juice", "itemPrice":100}'
 ```
   - ITEM 서비스의 버전을 0.3 버전에서 0.2 버전으로 다운그레이드 합.
