@@ -124,7 +124,7 @@ GDmarket : 근대마켓 - 근거리 대여 마켓
 
 ### 기능적 요구사항 검증
 
-![image](./img/functionRequirement.png)
+![image](./img/기능적요구사항.png)
 
    	- 물건관리자가 물건을 등록한다. (ok)
     - 물건관리자는 물건을 삭제할 수 있다. (ok)
