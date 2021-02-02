@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: item
-          image: gdmarketacr/item:latest
+          image: gdmarketacr.azurecr.io/item:latest
           ports:
             - containerPort: 8080
           readinessProbe:
