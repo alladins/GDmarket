@@ -185,28 +185,26 @@ mvn spring-boot:run
 
 ## DDD 의 적용
 
-각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 item 마이크로 서비스).
-이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하려고 노력했다.
+각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다.  아래 item 마이크로 서비스가 그 예시이다. 이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하려고 노력했다.
 
-![image](https://user-images.githubusercontent.com/73699193/98182350-e2e99f80-1f48-11eb-825c-da099795fe29.png)
+![image](./img/DDD.PNG)
 
 Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
 
-![image](https://user-images.githubusercontent.com/73699193/98182486-378d1a80-1f49-11eb-8e14-0de7296978b5.png)
+![image](./img/RESTRepo.PNG)
 
 
 ## 폴리글랏 퍼시스턴스
-대리점의 경우 H2 DB인 주문과 결제와 달리 Hsql으로 구현하여 MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다.
-
+item 서비스와 reservation 서비스는 H2 DB로 구현하고, 그와 달리 payment 서비스의 경우 Hsql으로 구현하여, MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다.
 
 app, pay, customer의 pom.xml 설정
 
-![image](https://user-images.githubusercontent.com/73699193/97972993-baf32280-1e08-11eb-8158-912e4d28d7ea.png)
+![image](./img/h2.PNG)
 
 
 store의 pom.xml 설정
 
-![image](https://user-images.githubusercontent.com/73699193/97973735-e0346080-1e09-11eb-9636-605e2e870fb0.png)
+![image](./img/hsql.PNG)
 
 
 
@@ -214,12 +212,12 @@ store의 pom.xml 설정
 
 gateway > applitcation.yml 설정
 
-![image](https://user-images.githubusercontent.com/73699193/98060621-5d54e980-1e8d-11eb-943c-692c5953c6a1.png)
+![image](./img/gateway.PNG)
 
 gateway 테스트
 
 ```
-http POST http://gateway:8080/orders item=test qty=1
+http POST http://gateway:8080/items itemName=Camera itemPrice=100 itemStatus=Rentable rentalStatus=NotRenting
 ```
 ![image](https://user-images.githubusercontent.com/73699193/98183284-2d6c1b80-1f4b-11eb-90ad-c95c4df1f36a.png)
 
@@ -227,62 +225,79 @@ http POST http://gateway:8080/orders item=test qty=1
 
 ## 동기식 호출 과 Fallback 처리
 
-분석단계에서의 조건 중 하나로 주문(app)->결제(pay) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다.
-호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
+설계에서, 아래의 두 가지 호출은 동기식 호출을 이용하여 일관성을 유지하는 트랜잭션으로 처리하도록 하였다. 
+
+- "예약 시스템의 결제 요청" > "결제 시스템의 결제 승인" 
+- "예약 시스템의 결제 취소 요청" > "결제 시스템의 결제 취소"
+
+호출 프로토콜은 앞서 작성한 REST Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 구현 하였다.
 
 - 결제서비스를 호출하기 위하여 FeignClient 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현
 ```
-# (app) external > PaymentService.java
+# reservation > external > PaymentService.java
 
-package phoneseller.external;
-
-@FeignClient(name="pay", url="${api.pay.url}")
+@FeignClient(name="payment", url="${api.payment.url}")
 public interface PaymentService {
 
     @RequestMapping(method= RequestMethod.POST, path="/payments")
-    public void pay(@RequestBody Payment payment);
+    public void approvePayment(@RequestBody Payment payment);
 
+    @RequestMapping(method= RequestMethod.DELETE, path="/payments/{paymentNo}")
+    public void cancelPayment(@PathVariable("paymentNo") Integer paymentNo);
 }
 ```
-![image](https://user-images.githubusercontent.com/73699193/98065833-b1190000-1e98-11eb-9e44-84d4961011ed.png)
+![image](./img/sync.PNG)
 
 
-- 주문을 받은 직후 결제를 요청하도록 처리
+- 결제 요청을 동기 호출로 받으면 결제 승인 처리
 ```
-# (app) Order.java (Entity)
+# payment > Payment.java (Entity)
 
     @PostPersist
     public void onPostPersist(){
 
-       phoneseller.external.Payment payment = new phoneseller.external.Payment();
-        payment.setOrderId(this.getId());
-        payment.setProcess("Ordered");
-        
-        AppApplication.applicationContext.getBean(phoneseller.external.PaymentService.class)
-            .pay(payment);
+        if ("Paid".equals(paymentStatus) ) {
+            System.out.println("=============결제 승인 처리중=============");
+            PaymentApproved paymentCompleted = new PaymentApproved();
+
+            paymentCompleted.setPaymentStatus("Paid");
+            paymentCompleted.setReservationNo(reservationNo);
+            paymentCompleted.setItemNo(itemNo);
+            paymentCompleted.setItemPrice(itemPrice);
+
+            BeanUtils.copyProperties(this, paymentCompleted);
+            paymentCompleted.publishAfterCommit();
+
+            try {
+                Thread.currentThread().sleep((long) (400 + Math.random() * 220));
+                System.out.println("=============결제 승인 완료=============");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
+	
 ```
-![image](https://user-images.githubusercontent.com/73699193/98066539-a6f80100-1e9a-11eb-8dd8-bf213d90e5fb.png)
+![image](./img/payment.PNG)
 
 - 동기식 호출이 적용되서 결제 시스템이 장애가 나면 주문도 못받는다는 것을 확인:
 
 ```
-#결제(pay) 서비스를 잠시 내려놓음 (ctrl+c)
-
-#주문하기(order)
-http http://localhost:8081/orders item=note20 qty=1   #Fail
+# reservation 서비스에서 결제 요청
+http PATCH localhost:8082/reservations/1 paymentStatus=Paid
 ```
-![image](https://user-images.githubusercontent.com/73699193/98072284-04934a00-1ea9-11eb-9fad-40d3996e109f.png)
+![image](./img/결제요청.PNG)
+```
+# payment 서비스에 결제 내역 생성확인
+http localhost:8083/payments
+```
+![image](./img/결제승인.PNG)
 
 ```
-#결제(pay) 서비스 재기동
-cd pay
-mvn spring-boot:run
-
-#주문하기(order)
-http http://localhost:8081/orders item=note21 qty=2   #Success
+# payment 서비스 중단 후 다시 reservation 서비스에서 결제 요청 -> 500 Error
+http PATCH localhost:8082/reservations/2 paymentStatus=Paid
 ```
-![image](https://user-images.githubusercontent.com/73699193/98074359-9f8e2300-1ead-11eb-8854-0449a65ff55c.png)
+![image](./img/결제실패.PNG)
 
 
 
