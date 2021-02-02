@@ -555,7 +555,7 @@ kubectl get deploy store -w -n phone82
 
 ## 무정지 재배포
 
-* 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscale 이나 CB 설정을 제거함
+* 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscale 이나 CB 설정을 제거함11
 
 
 - seige 로 배포작업 직전에 워크로드를 모니터링 함.
