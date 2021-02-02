@@ -555,13 +555,18 @@ kubectl get deploy store -w -n phone82
 
 ## 무정지 재배포
 
-* 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscale 이나 CB 설정을 제거함
+* 첫째 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscale 이나 CB 설정을 제거함
+* 둘째 item 서비스의 버전을 확인하여 상위버전을 만들어 AZ ACR에 PuSH 합니다.
+  - 0.2 버전이 서비스 되고 있고, 0.3 버전을 만들어 acr에 push 합니다. 
+az acr build --registry skcc10 --image skcc10.azurecr.io/item:0.3 .
 
+- seige 로 배포작업 직전에 워크로드를 모니터링 합니다.
+kubectl exec -it siege -- /bin/bash
+siege -c100 -t120S -r10 -v --content-type "application/json" 'http://item:8080/items POST {"itemName": "Juice", "itemPrice":100}'
 
-- seige 로 배포작업 직전에 워크로드를 모니터링 함.
-```
-kubectl apply -f kubernetes/deployment_readiness.yml
-```
+* 이상황에세 배포를 합니다.
+kubectl set image deploy store store=skcc10.azurecr.io/store:0.4
+
 - readiness 옵션이 없는 경우 배포 중 서비스 요청처리 실패
 
 ![image](https://user-images.githubusercontent.com/73699193/98105334-2a394700-1edb-11eb-9633-f5c33c5dee9f.png)
