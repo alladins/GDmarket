@@ -401,46 +401,49 @@ http localhost:8081/itemInfoes
 kubectl create ns gdmarket
 kubectl get ns
 ```
-![image](./img/운영/kubectl create ns.PNG)
-![image](./img/운영/kubectl get ns.PNG)
+![kubectl create ns](https://user-images.githubusercontent.com/26623768/106569902-819d9080-6578-11eb-917f-1eb718a31a91.PNG)
+![kubectl get ns](https://user-images.githubusercontent.com/26623768/106569904-83ffea80-6578-11eb-8b6a-06f7b98a7e1e.PNG)
+
 
 - 폴더 만들기, 해당폴더로 이동
 ```
 mkdir gdmarket
 cd gdmarket
 ```
-![image](./img/운영/mkdir gdmarket.PNG)
+![mkdir gdmarket](https://user-images.githubusercontent.com/26623768/106569980-a09c2280-6578-11eb-825b-c485da9657fc.PNG)
 
 - 소스 가져오기
 ```
 git clone https://github.com/0is2/GDmarket.git
 ```
-![image](./img/운영/캡처4 git clone.PNG)
+![캡처4 git clone](https://user-images.githubusercontent.com/26623768/106570001-a72a9a00-6578-11eb-9b88-f514738b8631.PNG)
 
 - 빌드하기
 ```
 cd app
 mvn package -Dmaven.test.skip=true
 ```
-![image](./img/운영/캡처5 mvn package.PNG)
+![캡처5 mvn package](https://user-images.githubusercontent.com/26623768/106570018-b14c9880-6578-11eb-8199-892c8653c621.PNG)
 
 - 도커라이징: Azure 레지스트리에 도커 이미지 푸시하기
 ```
 az acr build --registry gdmarketacr --image gdmarketacr.azurecr.io/item:0.1 .
 ```
-![image](./img/운영/캡처6 az acr build.PNG)
+![캡처6 az acr build](https://user-images.githubusercontent.com/26623768/106570038-b7427980-6578-11eb-9dde-d4b4ce147fad.PNG)
+
 
 - 컨테이너라이징: 디플로이 생성 확인
 ```
 kubectl create deploy item --image=gdmarketacr.azurecr.io/item:0.1 -n gdmarket
 ```
-![image](./img/운영/캡처7 create deploy.PNG)
+![캡처7 create deploy](https://user-images.githubusercontent.com/26623768/106570062-be698780-6578-11eb-9fdd-f05eaa78f72f.PNG)
 
 - 컨테이너라이징: 서비스 생성 확인
 ```
 kubectl expose deploy item --type="ClusterIP" --port=8080 -n gdmarket
 ```
-![image](./img/운영/캡처8 expose.PNG)
+![캡처8 expose](https://user-images.githubusercontent.com/26623768/106570085-c3c6d200-6578-11eb-9fef-aa58eef04c8a.PNG)
+
 
 - reservation, payment, gateway에도 동일한 작업 반복
 
@@ -456,7 +459,7 @@ kubectl expose deploy item --type="ClusterIP" --port=8080 -n gdmarket
 4. liveness 설정 (self-healing)
 5. resource 설정 (autoscaling)
 ```
-![image](./img/deployment수정.png)
+![캡처9 config map 생성](https://user-images.githubusercontent.com/26623768/106570102-ca554980-6578-11eb-81d7-50d63bba864d.PNG)
 - deployment.yml로 서비스 배포
 ```
 cd app
