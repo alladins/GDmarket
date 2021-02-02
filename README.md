@@ -268,12 +268,7 @@ public interface PaymentService {
             BeanUtils.copyProperties(this, paymentCompleted);
             paymentCompleted.publishAfterCommit();
 
-            try {
-                Thread.currentThread().sleep((long) (400 + Math.random() * 220));
-                System.out.println("=============결제 승인 완료=============");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+			System.out.println("=============결제 승인 완료=============");
         }
     }
 	
@@ -283,6 +278,12 @@ public interface PaymentService {
 
 - 동기식 호출이 적용되서 reservation 시스템과 payment 시스템이 일관성을 갖게 됨 
 ```
+# items 등록
+http POST localhost:8081/items/ itemName=Camera itemPrice=100 itemStatus=Rentable rentalStatus=NotRenting
+	
+# 예약 하기
+http POST localhost:8082/reservations customerName=YoungEunSong customerId=1 itemNo=1 itemName=Camera itemPrice=100 paymentStatus=NotPaid rentalStatus=NotRenting
+
 # reservation 서비스에서 결제 요청
 http PATCH localhost:8082/reservations/1 paymentStatus=Paid
 ```
@@ -306,39 +307,38 @@ http PATCH localhost:8082/reservations/2 paymentStatus=Paid
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리
 
 
-결제(pay)가 이루어진 후에 대리점(store)으로 이를 알려주는 행위는 비 동기식으로 처리하여 대리점(store)의 처리를 위하여 결제주문이 블로킹 되지 않아도록 처리한다.
+'예약됨(Reserved)', '예약취소됨(ReservationCancelled)', '대여됨(RentedItem)', '반납됨(ReturnedItem' 이벤트는 비동기식으로 각각 처리한다. 아래 예시는 그 중 '예약됨(Reserved)' 이벤트에 관한 내용이다.
 
-- 결제승인이 되었다(payCompleted)는 도메인 이벤트를 카프카로 송출한다(Publish)
+- '예약됨(Reserved)' 이벤트를 카프카로 송출한다(Publish)
 
-![image](https://user-images.githubusercontent.com/73699193/98075277-6f478400-1eaf-11eb-88c8-2b4a7736e56b.png)
+![image](./img/예약됨.PNG)
+
+- 물건관리자는 '예약됨(Reserved)' 이벤트를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
+- 물건관리자는 이벤트로부터 수신받은 '물건상태' 정보를 item의 ItemStatus에 저장한다.
+- 물건은 특정 인물에게 예약되었으므로, 더이상 다른 사람들에게는 대여불가능(NotRentable)하다는 정보를 갖게 된다. 
+
+![image](./img/대여불가능.PNG)
 
 
-- 대리점(store)에서는 결제승인(payCompleted) 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
-- 주문접수(OrderReceive)는 송출된 결제승인(payCompleted) 정보를 store의 Repository에 저장한다.:
-
-![image](https://user-images.githubusercontent.com/73699193/98076059-e0d40200-1eb0-11eb-94ad-c4ea114cb3aa.png)
-
-
-대리점(store)시스템은 주문(app)/결제(pay)와 완전히 분리되어있으며(sync transaction 없음), 이벤트 수신에 따라 처리되기 때문에, 대리점(store)이 유지보수로 인해 잠시 내려간 상태라도 주문을 받는데 문제가 없다.(시간적 디커플링):
+reservation 서비스는 item 서비스와 완전히 분리되어있으며(sync transaction 없음) 이벤트 수신에 따라 처리되기 때문에, item 서비스가 유지보수로 인해 잠시 내려간 상태라도 예약을 진행해도 문제 없다.(시간적 디커플링):
 ```
-# 대리점(store) 서비스를 잠시 내려놓음 (ctrl+c)
-
-#주문하기(order)
-http http://localhost:8081/orders item=note30 qty=2  #Success
-
-#주문상태 확인
-http get http://localhost:8081/orders    # 상태값이 'Shipped'이 아닌 'Payed'에서 멈춤을 확인
+# items 등록
+http POST localhost:8081/items/ itemName=Camera itemPrice=100 itemStatus=Rentable rentalStatus=NotRenting
+	
+# item 서비스를 내려놓은 후 reservation 서비스에서 예약 하기
+http POST localhost:8082/reservations customerName=YoungEunSong customerId=1 itemNo=1 itemName=Camera itemPrice=100 paymentStatus=NotPaid rentalStatus=NotRenting
 ```
-![image](https://user-images.githubusercontent.com/73699193/98078301-2b577d80-1eb5-11eb-9d89-7c03a3fa27dd.png)
+![image](./img/예약하기.PNG)
 ```
-#대리점(store) 서비스 기동
-cd store
+# item 서비스 기동
+cd item
 mvn spring-boot:run
 
-#주문상태 확인
-http get http://localhost:8081/orders     # 'Payed' 였던 상태값이 'Shipped'로 변경된 것을 확인
+# 예약한 item 의 itemStatus가 NotRentable로 바뀌었는지 확인 (pub/sub)
+http localhost:8081/items/1 
 ```
-![image](https://user-images.githubusercontent.com/73699193/98078837-2cd57580-1eb6-11eb-8850-a8c621410d61.png)
+![image](./img/예약완료.PNG)
+
 
 # 운영
 
