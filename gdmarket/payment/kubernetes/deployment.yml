@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: payment
-          image: gdmarketacr/payment:latest
+          image: gdmarketacr.azurecr.io/payment:latest
           ports:
             - containerPort: 8080
           readinessProbe:
