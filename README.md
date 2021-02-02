@@ -340,6 +340,59 @@ http localhost:8081/items/1
 ![image](./img/예약완료.PNG)
 
 
+## 시나리오 구현 검증
+```
+# items 등록
+	http POST localhost:8081/items/ itemName=Camera itemPrice=100 itemStatus=Rentable rentalStatus=NotRenting
+```
+![image](./img/시나리오1.PNG)
+```
+# 예약
+	http POST localhost:8082/reservations customerName=YoungEunSong customerId=1 itemNo=1 itemName=Camera itemPrice=100 paymentStatus=NotPaid rentalStatus=NotRenting
+```
+![image](./img/시나리오2.PNG)
+```
+# 예약한 item의 itemStatus가 NotRentable로 바뀌었는지 확인 (pub/sub)
+	http localhost:8081/items/1 
+```
+![image](./img/시나리오3.PNG)
+```
+# 결제요청 
+	http PATCH localhost:8082/reservations/1 paymentStatus=Paid
+```
+![image](./img/시나리오4.PNG)
+```
+# payments 생성 되어있는지 확인 (req/res)
+	http localhost:8083/payments
+```
+![image](./img/시나리오5.PNG)
+```
+# 대여 
+	http PATCH localhost:8081/items/1 itemNo=1 reservationNo=1 itemStatus=NotRentable rentalStatus=Renting 
+```
+![image](./img/시나리오6.PNG)
+```
+# reservations의 rentalStatus가 Renting으로 변경되었는지 확인 (pub/sub)
+	http localhost:8082/reservations/1
+```
+![image](./img/시나리오7.PNG)
+```
+# 반납 
+	http PATCH localhost:8081/items/1 itemNo=1 reservationNo=1 itemStatus=Rentable rentalStatus=Returned
+```
+![image](./img/시나리오8.PNG)
+```
+# reservations의 rentalStatus가 Returned으로 변경되었는지 확인 (pub/sub)
+	http localhost:8082/reservations/1
+```
+![image](./img/시나리오9.PNG)
+```
+# CQRS의 적용, view를 통해 item과 reservation의 정보를 한 번에 확인
+	http localhost:8081/itemInfoes
+```
+![image](./img/시나리오10.PNG)
+
+
 # 운영
 
 ## Deploy / Pipeline
