@@ -11,7 +11,7 @@ spring:
         - id: item
           uri: http://localhost:8081
           predicates:
-            - Path=/items/** /itemInfos/**
+            - Path=/items/**,/itemInfos/**
         - id: reservation
           uri: http://localhost:8082
           predicates:
@@ -42,7 +42,7 @@ spring:
         - id: item
           uri: http://item:8080
           predicates:
-            - Path=/items/** /itemInfos/**
+            - Path=/items/**,/itemInfos/**
         - id: reservation
           uri: http://reservation:8080
           predicates:
